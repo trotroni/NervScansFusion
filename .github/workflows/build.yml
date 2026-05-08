@@ -1,0 +1,93 @@
+name: Build FusionScantradQt (macOS + Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+
+  # =========================
+  # macOS BUILD + DMG
+  # =========================
+  build-macos:
+    name: macOS build + DMG
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.6.0'
+          host: 'mac'
+          target: 'desktop'
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run macdeployqt
+        run: |
+          macdeployqt build/FusionScantradQt.app -verbose=2
+
+      - name: Create DMG
+        run: |
+          mkdir dmg
+          cp -R build/FusionScantradQt.app dmg/
+
+          hdiutil create \
+            -volname FusionScantradQt \
+            -srcfolder dmg \
+            -ov -format UDZO FusionScantradQt-macOS.dmg
+
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: FusionScantradQt-macOS
+          path: FusionScantradQt-macOS.dmg
+
+
+  # =========================
+  # WINDOWS BUILD + ZIP
+  # =========================
+  build-windows:
+    name: Windows build + ZIP
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.6.0'
+          host: 'windows'
+          target: 'desktop'
+
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Deploy Qt dependencies
+        run: |
+          windeployqt build/Release/FusionScantradQt.exe
+
+      - name: Create ZIP package
+        run: |
+          powershell Compress-Archive `
+            -Path build/Release/* `
+            -DestinationPath FusionScantradQt-Windows.zip
+
+      - name: Upload Windows ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: FusionScantradQt-Windows
+          path: FusionScantradQt-Windows.zip
