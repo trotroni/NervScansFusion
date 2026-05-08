@@ -11,14 +11,23 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Fusion Scantrad Qt</string>
+   <string>NervScansFusion</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QPushButton" name="btnSource">
+      <property name="font">
+       <font>
+        <italic>false</italic>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="text">
        <string>Dossier Source</string>
+      </property>
+      <property name="icon">
+       <iconset theme="QIcon::ThemeIcon::DocumentSave"/>
       </property>
      </widget>
     </item>
@@ -34,6 +43,9 @@
       <property name="text">
        <string>Dossier Sortie</string>
       </property>
+      <property name="icon">
+       <iconset theme="QIcon::ThemeIcon::MailForward"/>
+      </property>
      </widget>
     </item>
     <item>
@@ -44,31 +56,42 @@
      </widget>
     </item>
     <item>
-     <widget class="QComboBox" name="comboMode">
+     <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <property name="text">
-        <string>Par nombre d'images par page</string>
-       </property>
+       <widget class="QComboBox" name="comboMode">
+        <item>
+         <property name="text">
+          <string>Par nombre d'images par page</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Par nombre de pages finales</string>
+         </property>
+        </item>
+       </widget>
       </item>
       <item>
-       <property name="text">
-        <string>Par nombre de pages finales</string>
-       </property>
+       <widget class="QSpinBox" name="spinPages">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>50</number>
+        </property>
+        <property name="value">
+         <number>4</number>
+        </property>
+       </widget>
       </item>
-     </widget>
-    </item>
-    <item>
-     <widget class="QSpinBox" name="spinPages">
-      <property name="minimum">
-       <number>1</number>
-      </property>
-      <property name="maximum">
-       <number>50</number>
-      </property>
-      <property name="value">
-       <number>4</number>
-      </property>
-     </widget>
+      <item>
+       <widget class="QLabel" name="labelModeInfo">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QLabel" name="labelImageCount">
@@ -100,6 +123,26 @@
     </item>
     <item>
      <widget class="QPushButton" name="btnMerge">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+        <horstretch>50</horstretch>
+        <verstretch>50</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>50</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <underline>false</underline>
+        <strikeout>false</strikeout>
+        <kerning>true</kerning>
+        <fontweight>DemiBold</fontweight>
+       </font>
+      </property>
       <property name="text">
        <string>FUSIONNER</string>
       </property>
@@ -109,7 +152,21 @@
      <widget class="QProgressBar" name="progressBar"/>
     </item>
     <item>
-     <widget class="QTextEdit" name="logText"/>
+     <widget class="QLabel" name="console">
+      <property name="text">
+       <string>Console :</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="logText">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

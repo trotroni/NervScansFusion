@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     updateModeUI();
-    ui->labelImageCount
+    //ui->labelImageCount;
 
     connect(ui->btnSource, &QPushButton::clicked,
             this, &MainWindow::selectSource);
@@ -60,6 +60,11 @@ void MainWindow::updateStats()
 
     QFileInfoList files = dir.entryInfoList(filters, QDir::Files, QDir::Name);
 
+    int count = files.size();
+    if (count == 0)
+        return;
+
+    // ---- MODE ----
     int mode = ui->comboMode->currentIndex();
     int spinValue = ui->spinPages->value();
 
@@ -69,16 +74,6 @@ void MainWindow::updateStats()
     {
         int nbFinalPages = spinValue;
         groupSize = qMax(1, (count + nbFinalPages - 1) / nbFinalPages);
-    }
-
-    // ---- MODE ----
-    int mode = ui->comboMode->currentIndex();
-    int groupSize = ui->spinPages->value();
-
-    if (mode == 1)
-    {
-        int nbFinalPages = groupSize;
-        groupSize = qMax(1, count / nbFinalPages);
     }
 
     int outputPages = (count + groupSize - 1) / groupSize;
@@ -107,7 +102,11 @@ void MainWindow::updateStats()
     int avgHeight = totalHeight / count;
 
     ui->labelImageCount->setText(QString("Images : %1").arg(count));
-    ui->labelAverageSize->setText(QString("Moyenne : %1x%2 px").arg(avgWidth).arg(avgHeight));
+    ui->labelAverageSize->setText(
+        QString("Moyenne : %1x%2 px")
+            .arg(avgWidth)
+            .arg(avgHeight)
+    );
 
     int estimatedHeight = totalHeight / groupSize;
 
@@ -139,9 +138,11 @@ void MainWindow::updateModeUI()
     int mode = ui->comboMode->currentIndex();
 
     if (mode == 0)
-        ui->spinPages->setSuffix(" img/page");
+        ui->labelModeInfo->setText("Images par page");
     else
-        ui->spinPages->setSuffix(" pages finales");
+        ui->labelModeInfo->setText("Nombre de pages finales");
+
+    //ui->spinPages->setSuffix(mode == 0 ? " img/page" : " pages");
 }
 
 void MainWindow::mergeImages()
