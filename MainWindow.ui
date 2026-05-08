@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>750</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Fusion Scantrad Qt</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QPushButton" name="btnSource">
+      <property name="text">
+       <string>Dossier Source</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelSource">
+      <property name="text">
+       <string>Aucun dossier</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btnOutput">
+      <property name="text">
+       <string>Dossier Sortie</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelOutput">
+      <property name="text">
+       <string>Aucun dossier</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QComboBox" name="comboMode">
+      <item>
+       <property name="text">
+        <string>Par nombre d'images par page</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Par nombre de pages finales</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <widget class="QSpinBox" name="spinPages">
+      <property name="minimum">
+       <number>1</number>
+      </property>
+      <property name="maximum">
+       <number>50</number>
+      </property>
+      <property name="value">
+       <number>4</number>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelImageCount">
+      <property name="text">
+       <string>Images : 0</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelOutputPages">
+      <property name="text">
+       <string>Pages générées : 0</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelAverageSize">
+      <property name="text">
+       <string>Moyenne : 0x0 px</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelEstimatedOutput">
+      <property name="text">
+       <string>Sortie estimée : 0x0 px</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btnMerge">
+      <property name="text">
+       <string>FUSIONNER</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QProgressBar" name="progressBar"/>
+    </item>
+    <item>
+     <widget class="QTextEdit" name="logText"/>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
