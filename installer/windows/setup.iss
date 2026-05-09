@@ -118,7 +118,6 @@ Source: "{#SourceDir}\imageformats\*";  DestDir: "{app}\imageformats";  Flags: i
 Source: "{#SourceDir}\iconengines\*";   DestDir: "{app}\iconengines";   Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists('{#SourceDir}\iconengines')
 Source: "{#SourceDir}\styles\*";        DestDir: "{app}\styles";        Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists('{#SourceDir}\styles')
 Source: "{#SourceDir}\translations\*";  DestDir: "{app}\translations";  Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists('{#SourceDir}\translations')
-
 ; ── Ressources de l'application (optionnel) ────────────────────────────────────
 ; Source: "..\..\resources\*"; DestDir: "{app}\resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 
