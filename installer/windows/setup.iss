@@ -22,7 +22,7 @@
 
 [Setup]
 ; ── Identité ─────────────────────────────────────────────────────────────────
-AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}}
 ; IMPORTANT : Génère ton propre GUID avec https://guidgen.com
 ; Ne change jamais l'AppId une fois publié (Windows s'en sert pour la mise à jour)
 
@@ -117,8 +117,6 @@ Source: "{#SourceDir}\platforms\qwindows.dll"; DestDir: "{app}\platforms"; Flags
 Source: "{#SourceDir}\imageformats\*";  DestDir: "{app}\imageformats";  Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceDir}\iconengines\*";   DestDir: "{app}\iconengines";   Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists('{#SourceDir}\iconengines')
 Source: "{#SourceDir}\styles\*";        DestDir: "{app}\styles";        Flags: ignoreversion recursesubdirs createallsubdirs; Check: DirExists('{#SourceDir}\styles')
-; translations (optionnel)
-; Source: "{#SourceDir}\translations\Qt6*.qm"; DestDir: "{app}\translations"; Flags: ignoreversion; Check: DirExists('{#SourceDir}\translations'); ── Ressources de l'application (optionnel) ────────────────────────────────────
 ; Source: "..\..\resources\*"; DestDir: "{app}\resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
