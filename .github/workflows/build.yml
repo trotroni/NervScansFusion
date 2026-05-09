@@ -54,28 +54,47 @@ jobs:
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
       # ── 5. windeployqt ───────────────────────────────────────────────────────
-      - name: Deploy Qt DLLs
+      - name: Deploy Qt DLLs + VC++ runtime
         shell: cmd
         run: |
-          mkdir deploy
-          copy "build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe" deploy\
+          set DEPLOY=deploy
+
+          if exist %DEPLOY% rmdir /S /Q %DEPLOY%
+          mkdir %DEPLOY%
+
+          copy "build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe" %DEPLOY%\
 
           windeployqt.exe ^
             --release ^
             --no-translations ^
             --no-system-d3d-compiler ^
             --no-opengl-sw ^
-            --dir deploy ^
-            deploy\${{ env.APP_NAME }}.exe
+            --dir %DEPLOY% ^
+            %DEPLOY%\${{ env.APP_NAME }}.exe
 
-          echo Contenu deploy :
-          dir deploy /s /b
+          REM =========================
+          REM VC++ RUNTIME (IMPORTANT)
+          REM =========================
+          for %%F in (
+            vcruntime140.dll
+            vcruntime140_1.dll
+            msvcp140.dll
+          ) do (
+            for /f "delims=" %%P in ('where %%F 2^>nul') do (
+              copy "%%P" %DEPLOY%\ >nul
+            )
+          )
+
+          echo ===== DEPLOY CONTENT =====
+          dir %DEPLOY% /s /b
 
       # ── 6. Inno Setup ────────────────────────────────────────────────────────
       - name: Build Installer
         shell: cmd
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\iscc.exe" ^
+          set ISCC="C:\Program Files (x86)\Inno Setup 6\iscc.exe"
+
+          %ISCC% ^
             /DMyAppVersion="${{ github.ref_name }}" ^
             /DSourceDir="%CD%\deploy" ^
             installer\windows\setup.iss

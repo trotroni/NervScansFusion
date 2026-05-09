@@ -42,7 +42,8 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 
 ; ── Sortie ────────────────────────────────────────────────────────────────────
-OutputDir={#OutDir}
+; OutputDir={#OutDir}
+OutputDir=dist
 OutputBaseFilename={#MyAppName}-Setup
 ; SetupIconFile=..\..\resources\app.ico   ; Ton icône .ico — commente si absent
 
