@@ -1,4 +1,4 @@
-name: Build FusionScantradQt (macOS + Windows)
+name: Build NervScansFusion (macOS + Windows)
 
 on:
   push:
@@ -34,23 +34,23 @@ jobs:
 
       - name: Run macdeployqt
         run: |
-          macdeployqt build/FusionScantradQt.app -verbose=2
+          macdeployqt build/NervScansFusion.app -verbose=2
 
       - name: Create DMG
         run: |
           mkdir dmg
-          cp -R build/FusionScantradQt.app dmg/
+          cp -R build/NervScansFusion.app dmg/
 
           hdiutil create \
-            -volname FusionScantradQt \
+            -volname NervScansFusion \
             -srcfolder dmg \
-            -ov -format UDZO FusionScantradQt-macOS.dmg
+            -ov -format UDZO NervScansFusion-macOS.dmg
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v4
         with:
-          name: FusionScantradQt-macOS
-          path: FusionScantradQt-macOS.dmg
+          name: NervScansFusion-macOS
+          path: NervScansFusion-macOS.dmg
 
 
   # =========================
@@ -79,16 +79,16 @@ jobs:
 
       - name: Deploy Qt dependencies
         run: |
-          windeployqt build/Release/FusionScantradQt.exe
+          windeployqt build/Release/NervScansFusion.exe
 
       - name: Create ZIP package
         run: |
           powershell Compress-Archive `
             -Path build/Release/* `
-            -DestinationPath FusionScantradQt-Windows.zip
+            -DestinationPath NervScansFusion-Windows.zip
 
       - name: Upload Windows ZIP
         uses: actions/upload-artifact@v4
         with:
-          name: FusionScantradQt-Windows
-          path: FusionScantradQt-Windows.zip
+          name: NervScansFusion-Windows
+          path: NervScansFusion-Windows.zip
