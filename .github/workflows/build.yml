@@ -1,94 +1,144 @@
-name: Build NervScansFusion (macOS + Windows)
+  ```yaml id="7m2qrl"
+  name: Build Installers
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-  workflow_dispatch:
+  on:
+    push:
+      branches:
+        - main
+    workflow_dispatch:
 
-jobs:
+  env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-  # =========================
-  # macOS BUILD + DMG
-  # =========================
-  build-macos:
-    name: macOS build + DMG
-    runs-on: macos-latest
+  jobs:
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    macos-intel:
+      runs-on: macos-13
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.6.0'
-          host: 'mac'
-          target: 'desktop'
+      steps:
+        - uses: actions/checkout@v4
 
-      - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        - uses: jurplel/install-qt-action@v4
+          with:
+            version: '6.6.0'
 
-      - name: Build
-        run: cmake --build build --config Release
+        - name: Configure
+          run: |
+            cmake -B build \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_OSX_ARCHITECTURES=x86_64
 
-      - name: Run macdeployqt
-        run: |
-          macdeployqt build/NervScansFusion.app -verbose=2
+        - name: Build
+          run: cmake --build build --config Release
 
-      - name: Create DMG
-        run: |
-          mkdir dmg
-          cp -R build/NervScansFusion.app dmg/
+        - name: Deploy Qt
+          run: |
+            macdeployqt build/NervScansFusion.app
 
-          hdiutil create \
-            -volname NervScansFusion \
-            -srcfolder dmg \
-            -ov -format UDZO NervScansFusion-macOS.dmg
+        - name: Create DMG
+          run: |
+            mkdir dmg
+            cp -R build/NervScansFusion.app dmg/
+            
+            hdiutil create \
+              NervScansFusion-macOS-Intel.dmg \
+              -volname "NervScansFusion" \
+              -srcfolder dmg \
+              -ov
 
-      - name: Upload macOS DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: NervScansFusion-macOS
-          path: NervScansFusion-macOS.dmg
+        - uses: actions/upload-artifact@v4
+          with:
+            name: NervScansFusion-macOS-Intel
+            path: NervScansFusion-macOS-Intel.dmg
 
+    windows-msi:
+      runs-on: windows-2025
 
-  # =========================
-  # WINDOWS BUILD + ZIP
-  # =========================
-  build-windows:
-    name: Windows build + ZIP
-    runs-on: windows-latest
+      steps:
+        - uses: actions/checkout@v4
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        - uses: jurplel/install-qt-action@v4
+          with:
+            version: '6.6.0'
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.6.0'
-          host: 'windows'
-          target: 'desktop'
+        - name: Install WiX
+          run: choco install wixtoolset -y
 
-      - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        - name: Configure
+          run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build
-        run: cmake --build build --config Release
+        - name: Build
+          run: cmake --build build --config Release
 
-      - name: Deploy Qt dependencies
-        run: |
-          windeployqt build/Release/NervScansFusion.exe
+        - name: Deploy Qt
+          run: |
+            windeployqt build\Release\NervScansFusion.exe
 
-      - name: Create ZIP package
-        run: |
-          powershell Compress-Archive `
-            -Path build/Release/* `
-            -DestinationPath NervScansFusion-Windows.zip
+        - name: Create Installer Structure
+          run: |
+            mkdir installer
+            xcopy build\Release installer /E /I /Y
 
-      - name: Upload Windows ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: NervScansFusion-Windows
-          path: NervScansFusion-Windows.zip
+        - name: Create WiX file
+          shell: powershell
+          run: |
+            @"
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+            
+              <Package
+                Name="NervScansFusion"
+                Manufacturer="Nitrotek"
+                Version="1.0.0"
+                UpgradeCode="12345678-1234-1234-1234-123456789123">
+            
+                <MediaTemplate />
+            
+                <StandardDirectory Id="ProgramFiles64Folder">
+                  <Directory Id="INSTALLFOLDER" Name="NervScansFusion">
+                    <Component Id="MainExecutable" Guid="*">
+            
+                      <File
+                        Id="AppEXE"
+                        Source="installer\NervScansFusion.exe"
+                        KeyPath="yes"/>
+            
+                      <Shortcut
+                        Id="DesktopShortcut"
+                        Directory="DesktopFolder"
+                        Name="NervScansFusion"
+                        WorkingDirectory="INSTALLFOLDER"
+                        Icon="AppIcon"
+                        Advertise="no"
+                        Target="[INSTALLFOLDER]NervScansFusion.exe"/>
+            
+                      <Shortcut
+                        Id="StartMenuShortcut"
+                        Directory="ProgramMenuFolder"
+                        Name="NervScansFusion"
+                        WorkingDirectory="INSTALLFOLDER"
+                        Icon="AppIcon"
+                        Advertise="no"
+                        Target="[INSTALLFOLDER]NervScansFusion.exe"/>
+            
+                    </Component>
+                  </Directory>
+                </StandardDirectory>
+            
+                <Feature Id="MainFeature" Title="NervScansFusion" Level="1">
+                  <ComponentRef Id="MainExecutable"/>
+                </Feature>
+            
+              </Package>
+            </Wix>
+            "@ | Out-File installer.wxs -Encoding utf8
+
+        - name: Build MSI
+          run: |
+            wix build installer.wxs -o NervScansFusion.msi
+
+        - uses: actions/upload-artifact@v4
+          with:
+            name: NervScansFusion-Windows-MSI
+            path: NervScansFusion.msi
+    ```
