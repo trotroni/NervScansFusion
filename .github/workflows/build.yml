@@ -87,6 +87,7 @@ jobs:
 
           echo ===== DEPLOY CONTENT =====
           dir %DEPLOY% /s /b
+          if exist deploy\translations rmdir /S /Q deploy\translations
 
       # ── 6. Inno Setup ────────────────────────────────────────────────────────
       - name: Build Installer
