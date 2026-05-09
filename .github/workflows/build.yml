@@ -1,111 +1,20 @@
-name: Build & Package Qt6 App
+name: Build & Package NervScansFusion (Windows)
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, master]
     tags:
       - "v*.*.*"
   pull_request:
-    branches: [main]
+    branches: [main, master]
   workflow_dispatch:
 
 env:
-  QT_VERSION: "6.6.3"
-  APP_NAME: "NervScansFusion"
-  BUILD_TYPE: "Release"
+  QT_VERSION:  "6.6.3"
+  APP_NAME:    "NervScansFusion"
+  BUILD_TYPE:  "Release"
 
-# ─────────────────────────────────────────────
-# JOB 1 — macOS Intel (x86_64)
-# ─────────────────────────────────────────────
 jobs:
-  build-macos:
-    name: macOS Intel (x86_64)
-    runs-on: macos-13        # macos-13 = dernier runner Intel garanti par GitHub
-
-    steps:
-      # ── 1. Sources ──────────────────────────────────────────────────────────
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # ── 2. Qt ───────────────────────────────────────────────────────────────
-      - name: Install Qt ${{ env.QT_VERSION }}
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: ${{ env.QT_VERSION }}
-          host: mac
-          target: desktop
-          arch: clang_64          # seul arch disponible sur runner Intel macOS
-          cache: true
-          cache-key-prefix: qt-mac-intel
-
-      # ── 3. Build ─────────────────────────────────────────────────────────────
-      - name: Configure CMake
-        shell: cmd
-        run: |
-          cmake -B build ^
-            -G "Visual Studio 17 2022" ^
-            -A x64 ^
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
-
-      - name: Build
-        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.logicalcpu)
-
-      # ── 4. Deploy Qt (DLL/frameworks dans le .app) ───────────────────────────
-      - name: Deploy Qt frameworks
-        run: |
-          # Récupère le chemin de macdeployqt depuis Qt installé par l'action
-          macdeployqt "build/${{ env.APP_NAME }}.app" -verbose=2 -always-overwrite
-          APP_PATH="build/${{ env.APP_NAME }}.app"
-
-          echo "macdeployqt path: $MACDEPLOYQT"
-          echo "App path: $APP_PATH"
-
-          # macdeployqt copie les frameworks Qt, les plugins (platform, imageformats…)
-          "$MACDEPLOYQT" "$APP_PATH" \
-            -verbose=2 \
-            -always-overwrite
-
-      # ── 5. DMG ───────────────────────────────────────────────────────────────
-      - name: Create DMG
-        run: |
-          APP_PATH="build/${{ env.APP_NAME }}.app"
-          DMG_NAME="${{ env.APP_NAME }}-macOS-Intel.dmg"
-
-          # Crée un DMG propre avec hdiutil (standard, 0 dépendance externe)
-          mkdir -p dist/dmg_content
-          cp -R "$APP_PATH" dist/dmg_content/
-
-          # Ajoute un lien symbolique vers /Applications pour l'UX "drag & drop"
-          ln -s /Applications dist/dmg_content/Applications
-
-          hdiutil create \
-            -volname "${{ env.APP_NAME }}" \
-            -srcfolder dist/dmg_content \
-            -ov \
-            -format UDZO \
-            "dist/${DMG_NAME}"
-
-          echo "DMG_PATH=dist/${DMG_NAME}" >> $GITHUB_ENV
-
-      # ── 6. Upload artefact ───────────────────────────────────────────────────
-      - name: Upload DMG
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.APP_NAME }}-macOS-Intel
-          path: ${{ env.DMG_PATH }}
-          retention-days: 30
-
-      # ── 7. Release (seulement sur tag v*) ───────────────────────────────────
-      - name: Attach DMG to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ${{ env.DMG_PATH }}
-
-
-  # ─────────────────────────────────────────────
-  # JOB 2 — Windows (MSVC + Inno Setup)
-  # ─────────────────────────────────────────────
   build-windows:
     name: Windows (MSVC + Inno Setup)
     runs-on: windows-latest
@@ -119,15 +28,14 @@ jobs:
       - name: Install Qt ${{ env.QT_VERSION }}
         uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ env.QT_VERSION }}
-          host: windows
-          target: desktop
-          arch: win64_msvc2019_64    # MSVC 64-bit — stable et standard industrie
-          cache: true
+          version:          ${{ env.QT_VERSION }}
+          host:             windows
+          target:           desktop
+          arch:             win64_msvc2019_64
+          cache:            true
           cache-key-prefix: qt-win64-msvc
 
-      # ── 3. MSVC (Visual Studio Build Tools) ──────────────────────────────────
-      # windows-latest inclut déjà VS 2022. On configure juste l'environnement.
+      # ── 3. MSVC ──────────────────────────────────────────────────────────────
       - name: Setup MSVC environment
         uses: ilammy/msvc-dev-cmd@v1
         with:
@@ -139,47 +47,36 @@ jobs:
         run: |
           cmake -B build ^
             -G "Visual Studio 17 2022" ^
-            -A x64 ^
-            -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
+            -A x64
 
       - name: Build
         shell: cmd
-        run: cmake --build build --config %BUILD_TYPE% --parallel
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-      # ── 5. Deploy Qt (DLL + plugins dans deploy/) ────────────────────────────
-      - name: Deploy Qt DLLs (windeployqt)
+      # ── 5. windeployqt ───────────────────────────────────────────────────────
+      - name: Deploy Qt DLLs
         shell: cmd
         run: |
-          :: Crée le répertoire de déploiement propre
           mkdir deploy
+          copy "build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe" deploy\
 
-          :: Copie l'exe buildé
-          copy "build\%BUILD_TYPE%\%APP_NAME%.exe" deploy\
-
-          :: windeployqt copie toutes les DLL Qt nécessaires :
-          ::   - Qt6Core, Qt6Gui, Qt6Widgets…
-          ::   - Plugin platform : platforms\qwindows.dll  <-- critique !
-          ::   - imageformats, iconengines, styles…
           windeployqt.exe ^
             --release ^
             --no-translations ^
             --no-system-d3d-compiler ^
             --no-opengl-sw ^
             --dir deploy ^
-            deploy\%APP_NAME%.exe
+            deploy\${{ env.APP_NAME }}.exe
 
-          echo "Contenu deploy :"
+          echo Contenu deploy :
           dir deploy /s /b
 
-      # ── 6. Inno Setup — création de l'installer .exe ─────────────────────────
-      # Inno Setup est pré-installé sur windows-latest : C:\Program Files (x86)\Inno Setup 6\
-      # Pas besoin de l'installer : c'est le gros avantage vs WiX.
-      - name: Build Installer (Inno Setup)
+      # ── 6. Inno Setup ────────────────────────────────────────────────────────
+      - name: Build Installer
         shell: cmd
         run: |
-          :: iscc.exe est dans le PATH sur windows-latest via Inno Setup 6
           "C:\Program Files (x86)\Inno Setup 6\iscc.exe" ^
-            /DNervScansFusionVersion="%GITHUB_REF_NAME%" ^
+            /DMyAppVersion="${{ github.ref_name }}" ^
             /DSourceDir="%CD%\deploy" ^
             installer\windows\setup.iss
 
@@ -187,12 +84,12 @@ jobs:
       - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-Windows-Setup
-          path: dist/${{ env.APP_NAME }}-Setup.exe
-          retention-days: 30
+          name:            ${{ env.APP_NAME }}-Windows-Setup
+          path:            dist/${{ env.APP_NAME }}-Setup.exe
+          retention-days:  30
 
-      # ── 8. Release (seulement sur tag v*) ───────────────────────────────────
-      - name: Attach installer to GitHub Release
+      # ── 8. Release (tag v* uniquement) ───────────────────────────────────────
+      - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:

@@ -45,22 +45,22 @@ target_link_libraries(NervScansFusion PRIVATE
 if(APPLE)
     set_target_properties(NervScansFusion PROPERTIES
             MACOSX_BUNDLE TRUE
-            MACOSX_BUNDLE_BUNDLE_NAME        "NervScansFusion"
-            MACOSX_BUNDLE_BUNDLE_VERSION     ${PROJECT_VERSION}
+            MACOSX_BUNDLE_BUNDLE_NAME         "NervScansFusion"
+            MACOSX_BUNDLE_BUNDLE_VERSION       ${PROJECT_VERSION}
             MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-            MACOSX_BUNDLE_GUI_IDENTIFIER     "com.NervScans.NervScansFusion"
-            # MACOSX_BUNDLE_ICON_FILE        "AppIcon.icns"  # décommente si tu as une icône
+            MACOSX_BUNDLE_GUI_IDENTIFIER      "com.NervScans.NervScansFusion"
+            MACOSX_BUNDLE_ICON_FILE           "NervScansFusionIcon.icns"
     )
     # Déplace l'icône dans le bundle si elle existe
-    # set_source_files_properties(resources/AppIcon.icns
-    #     PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
-    # )
+    set_source_files_properties(resources/NervScansFusionIcon.icns
+         PROPERTIES MACOSX_PACKAGE_LOCATION "Resources"
+    )
 endif()
 
 # ── Windows : pas de fenêtre console ─────────────────────────────────────────
 if(WIN32)
     set_target_properties(NervScansFusion PROPERTIES
-            WIN32_EXECUTABLE TRUE           # supprime la console CMD
+            WIN32_EXECUTABLE TRUE
     )
 endif()
 

@@ -109,7 +109,9 @@ void MainWindow::updateStats()
             .arg(avgHeight)
     );
 
-    int estimatedHeight = totalHeight / groupSize;
+    int estimatedHeight = (count > 0 && groupSize > 0)
+                      ? (totalHeight / count) * groupSize
+                      : 0;
 
     ui->labelEstimatedOutput->setText(
         QString("Sortie estimée : %1x%2 px")
