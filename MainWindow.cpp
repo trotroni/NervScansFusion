@@ -1,9 +1,10 @@
-#include "MainWindow.h"
+#include "../MainWindow.h"
 #include "ui_MainWindow.h"
 
 #include <QFileDialog>
 #include <QDir>
 #include <QImage>
+#include <QImageReader>
 #include <QPainter>
 #include <QMessageBox>
 
@@ -90,11 +91,11 @@ void MainWindow::updateStats()
 
     for (const QFileInfo& file : files)
     {
-        QImage img(file.absoluteFilePath());
-        if (img.isNull()) continue;
-
-        totalWidth += img.width();
-        totalHeight += img.height();
+        QImageReader reader(file.absoluteFilePath());
+        QSize size = reader.size();
+        if (!size.isValid()) continue;
+        totalWidth += size.width();
+        totalHeight += size.height();
         maxWidth = qMax(maxWidth, img.width());
     }
 

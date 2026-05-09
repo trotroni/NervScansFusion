@@ -20,10 +20,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 # ── Sources ──────────────────────────────────────────────────────────────────
 set(SOURCES
-        src/main.cpp
-        src/mainwindow.cpp
-        src/mainwindow.h
-        src/mainwindow.ui
+        main.cpp
+        MainWindow.cpp
+        MainWindow.h
+        MainWindow.ui
         # resources/resources.qrc  # décommente si tu as des ressources Qt
 )
 

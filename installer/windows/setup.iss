@@ -14,10 +14,10 @@
   #define SourceDir "..\..\deploy"
 #endif
 
-#define MyAppName      "MyApp"
+#define MyAppName      "NervScansFusion"
 #define MyAppPublisher "Mon Entreprise"
 #define MyAppURL       "https://example.com"
-#define MyAppExeName   "MyApp.exe"
+#define MyAppExeName   "NervScansFusion.exe"
 #define OutDir         "..\..\dist"
 
 [Setup]
@@ -44,7 +44,7 @@ AllowNoIcons=yes
 ; ── Sortie ────────────────────────────────────────────────────────────────────
 OutputDir={#OutDir}
 OutputBaseFilename={#MyAppName}-Setup
-SetupIconFile=..\..\resources\app.ico   ; Ton icône .ico — commente si absent
+; SetupIconFile=..\..\resources\app.ico   ; Ton icône .ico — commente si absent
 
 ; ── Compression ───────────────────────────────────────────────────────────────
 Compression=lzma2/ultra64
