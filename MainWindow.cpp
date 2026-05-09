@@ -1,4 +1,4 @@
-#include "../MainWindow.h"
+#include "MainWindow.h"
 #include "ui_MainWindow.h"
 
 #include <QFileDialog>
@@ -96,7 +96,7 @@ void MainWindow::updateStats()
         if (!size.isValid()) continue;
         totalWidth += size.width();
         totalHeight += size.height();
-        maxWidth = qMax(maxWidth, img.width());
+        maxWidth = qMax(maxWidth, size.width());
     }
 
     int avgWidth = totalWidth / count;
