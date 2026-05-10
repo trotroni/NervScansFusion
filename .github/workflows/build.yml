@@ -45,35 +45,87 @@ jobs:
       - name: Configure CMake
         shell: cmd
         run: |
-          cmake -B build ^
-            -G "Visual Studio 17 2022" ^
-            -A x64
+          cmake -B build -G "Visual Studio 17 2022" -A x64
+          if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
       - name: Build
         shell: cmd
-        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+        run: |
+          cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+          if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
+      # ── 5. Vérifie que l'exe existe avant de continuer ───────────────────────
+      - name: Verify build output
+        shell: cmd
+        run: |
+          echo === Contenu build\${{ env.BUILD_TYPE }}\ ===
+          dir "build\${{ env.BUILD_TYPE }}" 2>nul || (
+            echo ERREUR : dossier build\${{ env.BUILD_TYPE }}\ introuvable
+            exit /b 1
+          )
+          if not exist "build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe" (
+            echo ERREUR : ${{ env.APP_NAME }}.exe absent du dossier de build
+            exit /b 1
+          )
+          echo OK : build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe trouve
 
-      # ── 6. Inno Setup ────────────────────────────────────────────────────────
+      # ── 6. windeployqt ───────────────────────────────────────────────────────
+      - name: Deploy Qt DLLs
+        shell: cmd
+        run: |
+          if exist deploy rmdir /S /Q deploy
+          mkdir deploy
+
+          copy "build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe" deploy\
+          if %ERRORLEVEL% neq 0 (
+            echo ERREUR : copie de l exe echouee
+            exit /b 1
+          )
+
+          windeployqt.exe ^
+            --release ^
+            --no-translations ^
+            --no-system-d3d-compiler ^
+            --no-opengl-sw ^
+            --dir deploy ^
+            deploy\${{ env.APP_NAME }}.exe
+          if %ERRORLEVEL% neq 0 (
+            echo ERREUR : windeployqt a echoue
+            exit /b 1
+          )
+
+          echo === Contenu deploy\ ===
+          dir deploy /s /b
+
+          if not exist deploy\${{ env.APP_NAME }}.exe (
+            echo ERREUR : exe absent du dossier deploy apres windeployqt
+            exit /b 1
+          )
+          if not exist deploy\platforms\qwindows.dll (
+            echo ERREUR : platforms\qwindows.dll absent
+            exit /b 1
+          )
+          echo OK : deploy valide
+
+      # ── 7. Inno Setup ────────────────────────────────────────────────────────
       - name: Build Installer
         shell: cmd
         run: |
-          set ISCC="C:\Program Files (x86)\Inno Setup 6\iscc.exe"
-
-          %ISCC% ^
+          "C:\Program Files (x86)\Inno Setup 6\iscc.exe" ^
             /DMyAppVersion="${{ github.ref_name }}" ^
             /DSourceDir="%CD%\deploy" ^
             installer\windows\setup.iss
+          if %ERRORLEVEL% neq 0 exit /b %ERRORLEVEL%
 
-      # ── 7. Upload artefact ───────────────────────────────────────────────────
+      # ── 8. Upload artefact ───────────────────────────────────────────────────
       - name: Upload Installer
         uses: actions/upload-artifact@v4
         with:
-          name:            ${{ env.APP_NAME }}-Windows-Setup
-          path: installer/windows/dist/${{ env.APP_NAME }}-Setup.exe
-          retention-days:  30
+          name:           ${{ env.APP_NAME }}-Windows-Setup
+          path:           installer/windows/dist/${{ env.APP_NAME }}-Setup.exe
+          retention-days: 30
 
-      # ── 8. Release (tag v* uniquement) ───────────────────────────────────────
+      # ── 9. Release (tag v* uniquement) ───────────────────────────────────────
       - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
