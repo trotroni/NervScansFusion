@@ -101,11 +101,10 @@ Source: "{#SourceDir}\Qt6Widgets.dll"; DestDir: "{app}"; Flags: ignoreversion
 ; Ajoute ici les DLL que ton app utilise réellement (Network, Sql, Svg…)
 ; Source: "{#SourceDir}\Qt6Network.dll"; DestDir: "{app}"; Flags: ignoreversion
 
-; ── VCRUNTIME (runtime MSVC — critique pour les users sans VS installé) ────────
-Source: "{#SourceDir}\vcruntime140.dll";     DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\vcruntime140_1.dll";   DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\msvcp140.dll";         DestDir: "{app}"; Flags: ignoreversion
-; Note : windeployqt --release les copie déjà normalement dans SourceDir
+; ── VC++ Runtime — redistribuable officiel Microsoft ─────────────────────────
+; windeployqt copie automatiquement vc_redist.x64.exe dans le dossier deploy.
+; On l'exécute silencieusement pendant l'installation : propre et exhaustif.
+Source: "{#SourceDir}\vc_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 
 ; ── Plugin platform OBLIGATOIRE : qwindows.dll ────────────────────────────────
 ; Sans ce plugin, l'exe plante au démarrage avec "This application failed to start
@@ -128,6 +127,12 @@ Name: "{group}\Désinstaller {#MyAppName}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}";    Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
+; Installe le runtime VC++ silencieusement (si pas déjà présent)
+Filename: "{tmp}\vc_redist.x64.exe"; \
+  Parameters: "/install /quiet /norestart"; \
+  StatusMsg: "Installation du runtime Visual C++..."; \
+  Flags: runascurrentuser waituntilterminated
+
 ; Lancer l'application à la fin de l'installation (optionnel)
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 

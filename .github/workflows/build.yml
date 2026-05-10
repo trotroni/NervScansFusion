@@ -53,41 +53,6 @@ jobs:
         shell: cmd
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-      # ── 5. windeployqt ───────────────────────────────────────────────────────
-      - name: Deploy Qt DLLs + VC++ runtime
-        shell: cmd
-        run: |
-          set DEPLOY=deploy
-
-          if exist %DEPLOY% rmdir /S /Q %DEPLOY%
-          mkdir %DEPLOY%
-
-          copy "build\${{ env.BUILD_TYPE }}\${{ env.APP_NAME }}.exe" %DEPLOY%\
-
-          windeployqt.exe ^
-            --release ^
-            --no-translations ^
-            --no-system-d3d-compiler ^
-            --no-opengl-sw ^
-            --dir %DEPLOY% ^
-            %DEPLOY%\${{ env.APP_NAME }}.exe
-
-          REM =========================
-          REM VC++ RUNTIME (IMPORTANT)
-          REM =========================
-          for %%F in (
-            vcruntime140.dll
-            vcruntime140_1.dll
-            msvcp140.dll
-          ) do (
-            for /f "delims=" %%P in ('where %%F 2^>nul') do (
-              copy "%%P" %DEPLOY%\ >nul
-            )
-          )
-
-          echo ===== DEPLOY CONTENT =====
-          dir %DEPLOY% /s /b
-          if exist deploy\translations rmdir /S /Q deploy\translations
 
       # ── 6. Inno Setup ────────────────────────────────────────────────────────
       - name: Build Installer
